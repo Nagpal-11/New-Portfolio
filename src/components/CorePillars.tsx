@@ -116,6 +116,7 @@ export default function CorePillars() {
           isLockedRef.current = true;
           currentIndexRef.current = targetIndex;
           setActivePillarState(targetIndex);
+          setActiveTabMobile(targetIndex);
 
           const isAdvancing = targetIndex > prevIndex;
           const tl = gsap.timeline({
@@ -256,6 +257,7 @@ export default function CorePillars() {
         const st = ScrollTrigger.create({
           trigger: sectionRef.current,
           pin: true,
+          pinSpacing: true,
           start: 'top top',
           end: '+=1500',
           anticipatePin: 1,
@@ -425,7 +427,7 @@ export default function CorePillars() {
     <section
       id="pillars"
       ref={sectionRef}
-      className="relative bg-[#0b0b0b] text-white min-h-screen min-h-[100dvh] flex flex-col justify-center overflow-hidden py-16 sm:py-24 lg:py-0"
+      className="relative bg-[#0b0b0b] text-white w-full max-w-full min-h-screen min-h-[100dvh] lg:h-screen lg:h-[100dvh] flex flex-col justify-center overflow-hidden py-12 sm:py-16 lg:py-0"
     >
       {/* Dark Architectural Grid Guides */}
       <div className="architectural-grid dark-grid opacity-30">
@@ -435,7 +437,7 @@ export default function CorePillars() {
       </div>
 
       {/* Subtle Radar Background Rings & Crosshairs */}
-      <div className="absolute inset-0 flex items-center justify-center pointer-events-none opacity-20">
+      <div className="absolute inset-0 flex items-center justify-center pointer-events-none opacity-20 overflow-hidden">
         <div className="w-[300px] h-[300px] sm:w-[500px] sm:h-[500px] lg:w-[760px] lg:h-[760px] rounded-full border border-neutral-700/60" />
         <div className="absolute w-[200px] h-[200px] sm:w-[350px] sm:h-[350px] lg:w-[520px] lg:h-[520px] rounded-full border border-neutral-700/50" />
         <div className="absolute w-[100px] h-[100px] sm:w-[180px] sm:h-[180px] lg:w-[280px] lg:h-[280px] rounded-full border border-neutral-700/40" />
@@ -459,7 +461,7 @@ export default function CorePillars() {
         </div>
 
         {/* Main Split-Screen Section */}
-        <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 lg:gap-16 items-center">
+        <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 lg:gap-12 xl:gap-16 items-center">
           {/* Left Column: Stacked Pillar Titles (6 cols) */}
           <div className="lg:col-span-6 space-y-6 sm:space-y-8">
             <div className="space-y-3 sm:space-y-5 select-none relative">
@@ -479,16 +481,16 @@ export default function CorePillars() {
                       wordsRef.current[idx] = el;
                     }}
                     onClick={() => handleWordClick(idx)}
-                    className="group flex items-center gap-4 text-left w-full focus:outline-none transition-all duration-200 cursor-pointer"
+                    className="group flex items-center gap-3 sm:gap-4 text-left w-fit max-w-full focus:outline-none transition-all duration-200 cursor-pointer"
                   >
-                    <span className="text-[9.5vw] sm:text-[7vw] lg:text-[4.5vw] font-black tracking-tight uppercase leading-none text-neutral-500 transition-colors duration-200">
+                    <span className="text-[clamp(1.75rem,5vw,2.5rem)] sm:text-[clamp(2rem,4vw,3rem)] lg:text-[clamp(2.15rem,3.1vw,3.25rem)] xl:text-[3.35rem] font-black tracking-tight uppercase leading-none text-neutral-500 transition-colors duration-200 whitespace-nowrap">
                       {pillar.title}.
                     </span>
                     <span
                       ref={(el) => {
                         indicatorRef.current[idx] = el;
                       }}
-                      className="w-3 h-3 bg-blue-600 rounded-none shrink-0 opacity-0"
+                      className="w-2.5 h-2.5 sm:w-3 sm:h-3 bg-blue-600 rounded-none shrink-0 opacity-0"
                     />
                   </button>
                 );

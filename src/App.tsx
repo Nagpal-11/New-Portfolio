@@ -21,11 +21,10 @@ import { Project } from './types';
 
 gsap.registerPlugin(ScrollTrigger);
 
-// Global Mobile and Trackpad ScrollTrigger Render Optimization:
-// Prevents Safari/Chrome address bar resizing from triggering jumpy layout recalculations
+// Global Mobile and Trackpad ScrollTrigger Render Optimization
 ScrollTrigger.config({
   ignoreMobileResize: true,
-  autoRefreshEvents: 'visibilitychange,DOMContentLoaded,load',
+  autoRefreshEvents: 'visibilitychange,DOMContentLoaded,load,resize',
 });
 
 export default function App() {
@@ -69,9 +68,14 @@ export default function App() {
       document.documentElement.style.setProperty('--dvh', `${window.innerHeight}px`);
     };
 
+    const handleResize = () => {
+      updateViewportHeight();
+      ScrollTrigger.refresh();
+    };
+
     updateViewportHeight();
-    window.addEventListener('resize', updateViewportHeight);
-    window.addEventListener('orientationchange', updateViewportHeight);
+    window.addEventListener('resize', handleResize);
+    window.addEventListener('orientationchange', handleResize);
 
     // 5. Fix Resize & Refresh Conflicts:
     // Call ScrollTrigger.refresh() only after all assets, fonts, and card dimensions are fully loaded
@@ -93,8 +97,8 @@ export default function App() {
     return () => {
       clearTimeout(initialSettleTimer);
       window.removeEventListener('load', handleWindowLoad);
-      window.removeEventListener('resize', updateViewportHeight);
-      window.removeEventListener('orientationchange', updateViewportHeight);
+      window.removeEventListener('resize', handleResize);
+      window.removeEventListener('orientationchange', handleResize);
       gsap.ticker.remove(tickerCallback);
       lenis.destroy();
       lenisRef.current = null;
@@ -130,7 +134,7 @@ export default function App() {
   };
 
   return (
-    <div className="min-h-screen min-h-[100dvh] bg-[#f3f3f0] text-neutral-900 selection:bg-blue-600 selection:text-white relative">
+    <div className="min-h-screen min-h-[100dvh] w-full max-w-full bg-[#f3f3f0] text-neutral-900 selection:bg-blue-600 selection:text-white relative">
       {/* Custom Stylized Magnetic Cursor */}
       <CustomCursor />
 
@@ -144,10 +148,11 @@ export default function App() {
       />
 
       {/* Main Content Layout */}
-      <main>
+      <main className="w-full max-w-full">
         {/* Hero Section */}
         <Hero
           onOpenContact={() => setContactOpen(true)}
+          onOpenResume={() => setResumeOpen(true)}
           onExploreWork={handleExploreWork}
           onOpenProject={handleOpenProjectById}
         />

@@ -197,12 +197,12 @@ export default function FeaturedWork({ onOpenProjectModal }: FeaturedWorkProps) 
 
       // Initialize Card Stacking and Initial Absolute Positioning:
       // Card 0: centered, fully visible, interactive, 100% solid opaque
-      // Subsequent cards: off-screen right (110%), 100% solid opaque
+      // Subsequent cards: off-screen right (110%), hidden opacity to avoid layout shifts
       cards.forEach((card, idx) => {
         gsap.set(card, {
           xPercent: idx === 0 ? 0 : 110,
           yPercent: 0,
-          opacity: 1,
+          opacity: idx === 0 ? 1 : 0,
           scale: 1,
           rotationZ: 0,
           rotationY: 0,
@@ -285,10 +285,12 @@ export default function FeaturedWork({ onOpenProjectModal }: FeaturedWorkProps) 
             // Incoming card lands at exactly 100% center alignment (xPercent: 0)
             gsap.set(incomingCard, {
               xPercent: 0,
+              opacity: 1,
               pointerEvents: 'auto',
               zIndex: 15,
             });
             gsap.set(outgoingCard, {
+              opacity: 0,
               pointerEvents: 'none',
               zIndex: 1,
             });
@@ -299,8 +301,8 @@ export default function FeaturedWork({ onOpenProjectModal }: FeaturedWorkProps) 
           },
         });
 
-        tl.to(outgoingCard, { xPercent: outgoingEndX }, 0);
-        tl.to(incomingCard, { xPercent: 0 }, 0);
+        tl.to(outgoingCard, { xPercent: outgoingEndX, opacity: 0 }, 0);
+        tl.to(incomingCard, { xPercent: 0, opacity: 1 }, 0);
 
         // Synchronize window scroll to match the discrete card step
         if (syncScroll && scrollTriggerRef.current) {
@@ -329,6 +331,7 @@ export default function FeaturedWork({ onOpenProjectModal }: FeaturedWorkProps) 
         start: 'top top',
         end: () => '+=' + ((cardCount - 1) * window.innerHeight),
         pin: true,
+        pinSpacing: true,
         anticipatePin: 1,
         invalidateOnRefresh: true,
         onUpdate: (self) => {
@@ -413,7 +416,7 @@ export default function FeaturedWork({ onOpenProjectModal }: FeaturedWorkProps) 
     <section
       id="work"
       ref={sectionRef}
-      className="relative h-screen h-[100dvh] max-h-[100dvh] w-full overflow-hidden bg-[#f3f3f0] border-b border-neutral-200/80 flex flex-col justify-between select-none"
+      className="relative h-screen h-[100dvh] min-h-[100dvh] max-h-[100dvh] w-full max-w-full overflow-hidden bg-[#f3f3f0] border-b border-neutral-200/80 flex flex-col justify-between select-none"
     >
       {/* Structural Architectural Grid Lines */}
       <div className="architectural-grid pointer-events-none">
@@ -495,7 +498,7 @@ export default function FeaturedWork({ onOpenProjectModal }: FeaturedWorkProps) 
       <div className="selected-work-container relative z-10 w-full flex-1 flex items-center justify-center px-4 sm:px-6 lg:px-12 max-w-7xl mx-auto my-auto min-h-0 overflow-hidden pb-3 sm:pb-5">
         <div
           ref={deckWrapperRef}
-          className="relative w-full max-w-6xl h-[500px] sm:h-[530px] lg:h-[570px] max-h-[calc(100dvh-135px)]"
+          className="relative w-full max-w-6xl h-[500px] sm:h-[530px] lg:h-[570px] xl:h-[600px] max-h-[calc(100dvh-135px)] overflow-hidden"
         >
           {PROJECTS.map((project, idx) => {
             return (

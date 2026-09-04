@@ -1,17 +1,44 @@
 import React, { useState } from 'react';
-import { ArrowUpRight, Play, Pause, Sparkles, Activity, ShieldCheck, ChevronRight } from 'lucide-react';
+import { ArrowUpRight, Play, Pause, Sparkles, Activity, ShieldCheck, ChevronRight, FileText } from 'lucide-react';
 import ArchitecturalSculpture from './ArchitecturalSculpture';
 import { PERSONAL_INFO } from '../data/portfolioData';
 
 interface HeroProps {
   onOpenContact: () => void;
-  onExploreWork: () => void;
-  onOpenProject: (projectId: string) => void;
+  onOpenResume?: () => void;
+  onExploreWork?: () => void;
+  onOpenProject?: (projectId: string) => void;
 }
 
-export default function Hero({ onOpenContact, onExploreWork, onOpenProject }: HeroProps) {
+export default function Hero({ onOpenContact, onOpenResume, onExploreWork, onOpenProject }: HeroProps) {
   const [isPlaying, setIsPlaying] = useState(true);
   const [activeMediaIndex, setActiveMediaIndex] = useState(0);
+
+  const handleExploreWork = () => {
+    if (onExploreWork) {
+      onExploreWork();
+    } else {
+      const target = document.querySelector('#pillars') || document.querySelector('#work');
+      if ((window as any).__lenis) {
+        (window as any).__lenis.scrollTo(target || '#pillars', { duration: 1.2 });
+      } else {
+        target?.scrollIntoView({ behavior: 'smooth' });
+      }
+    }
+  };
+
+  const handleOpenProject = (id: string) => {
+    if (onOpenProject) {
+      onOpenProject(id);
+    } else {
+      const target = document.querySelector('#work');
+      if ((window as any).__lenis) {
+        (window as any).__lenis.scrollTo(target || '#work', { duration: 1.2 });
+      } else {
+        target?.scrollIntoView({ behavior: 'smooth' });
+      }
+    }
+  };
 
   const heroDemos = [
     {
@@ -43,7 +70,7 @@ export default function Hero({ onOpenContact, onExploreWork, onOpenProject }: He
   const currentDemo = heroDemos[activeMediaIndex];
 
   return (
-    <section id="about" className="relative pt-28 pb-16 md:pt-36 md:pb-24 overflow-hidden border-b border-neutral-200/80">
+    <section id="about" className="relative pt-32 pb-16 sm:pt-36 md:pt-40 md:pb-24 overflow-hidden border-b border-neutral-200/80">
       {/* Structural Architectural Grid Lines */}
       <div className="architectural-grid">
         {Array.from({ length: 12 }).map((_, i) => (
@@ -72,10 +99,10 @@ export default function Hero({ onOpenContact, onExploreWork, onOpenProject }: He
         </div>
 
         {/* Giant Monolithic Brand Headline — Authoritative H1 with Target Name & Key Discipline */}
-        <div className="pt-8 sm:pt-12 pb-8 sm:pb-12 text-center">
-          <h1 className="text-[12vw] sm:text-[11vw] lg:text-[9.5vw] font-black tracking-[-0.04em] uppercase leading-[0.88] text-neutral-950 select-none">
-            <span className="block">Ekjot Nagpal</span>
-            <span className="block text-xs sm:text-sm md:text-base lg:text-lg font-mono font-bold tracking-[0.2em] text-blue-600 uppercase mt-2 sm:mt-3">
+        <div className="pt-8 sm:pt-10 pb-8 sm:pb-10 text-center overflow-hidden">
+          <h1 className="text-[clamp(1.75rem,6.5vw,4.5rem)] sm:text-[clamp(2.2rem,6vw,5.25rem)] lg:text-[clamp(2.8rem,5.2vw,5.75rem)] xl:text-[6rem] font-black tracking-[-0.03em] uppercase leading-none text-neutral-950 select-none">
+            <span className="inline-block whitespace-nowrap max-w-full">Ekjot Nagpal</span>
+            <span className="block text-xs sm:text-sm md:text-base lg:text-lg font-mono font-bold tracking-[0.16em] sm:tracking-[0.2em] text-blue-600 uppercase mt-2 sm:mt-3">
               Software Engineer &amp; AI Systems Specialist
             </span>
           </h1>
@@ -98,22 +125,33 @@ export default function Hero({ onOpenContact, onExploreWork, onOpenProject }: He
             </div>
 
             {/* CTAs */}
-            <div className="flex flex-col sm:flex-row gap-3 pt-2">
+            <div className="flex flex-wrap gap-3 pt-2">
               <button
                 onClick={onOpenContact}
-                className="group inline-flex items-center justify-center gap-2 px-6 py-3.5 rounded-full bg-blue-600 hover:bg-blue-700 text-white text-xs font-bold tracking-wider uppercase transition-all shadow-md hover:shadow-lg active:scale-[0.98]"
+                className="group inline-flex items-center justify-center gap-2 px-6 py-3.5 rounded-full bg-blue-600 hover:bg-blue-700 text-white text-xs font-bold tracking-wider uppercase transition-all shadow-md hover:shadow-lg active:scale-[0.98] cursor-pointer"
               >
                 <span>Get In Touch</span>
                 <ArrowUpRight size={15} className="group-hover:translate-x-0.5 group-hover:-translate-y-0.5 transition-transform" />
               </button>
 
               <button
-                onClick={onExploreWork}
-                className="inline-flex items-center justify-center gap-2 px-6 py-3.5 rounded-full border border-neutral-300 hover:border-black bg-white/70 hover:bg-white text-neutral-900 text-xs font-bold tracking-wider uppercase transition-all"
+                onClick={handleExploreWork}
+                className="inline-flex items-center justify-center gap-2 px-5 py-3.5 rounded-full border border-neutral-300 hover:border-black bg-white/70 hover:bg-white text-neutral-900 text-xs font-bold tracking-wider uppercase transition-all cursor-pointer"
               >
                 <span>Explore Work</span>
                 <ChevronRight size={15} />
               </button>
+
+              {onOpenResume && (
+                <button
+                  onClick={onOpenResume}
+                  className="inline-flex items-center justify-center gap-2 px-5 py-3.5 rounded-full border border-neutral-300 hover:border-blue-600 bg-white/70 hover:bg-blue-50/50 text-neutral-900 hover:text-blue-600 text-xs font-bold tracking-wider uppercase transition-all cursor-pointer"
+                  title="View Verified Curriculum Vitae"
+                >
+                  <FileText size={14} className="text-blue-600" />
+                  <span>Resume / CV</span>
+                </button>
+              )}
             </div>
 
             {/* Quick Metrics Ticker Preview */}
@@ -234,8 +272,8 @@ export default function Hero({ onOpenContact, onExploreWork, onOpenProject }: He
                 </div>
 
                 <button
-                  onClick={() => onOpenProject(currentDemo.id)}
-                  className="text-xs font-bold text-neutral-900 hover:text-blue-600 flex items-center gap-1 transition-colors group/btn"
+                  onClick={() => handleOpenProject(currentDemo.id)}
+                  className="text-xs font-bold text-neutral-900 hover:text-blue-600 flex items-center gap-1 transition-colors group/btn cursor-pointer"
                 >
                   <span>Explore System</span>
                   <ArrowUpRight size={13} className="group-hover/btn:translate-x-0.5 group-hover/btn:-translate-y-0.5 transition-transform" />

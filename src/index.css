@@ -1,5 +1,12 @@
 @import "tailwindcss";
 
+/* Global Overflow & Viewport Containment */
+html, body {
+  overflow-x: hidden;
+  max-width: 100%;
+  width: 100%;
+}
+
 /* Lenis Smooth Scroll Global Integration */
 html.lenis, html.lenis body {
   height: auto;
@@ -35,6 +42,14 @@ html.lenis, html.lenis body {
     background-color: #f3f3f0;
     min-height: 100vh;
     min-height: 100dvh;
+    overflow-x: hidden;
+    max-width: 100%;
+    width: 100%;
+  }
+
+  #root {
+    max-width: 100%;
+    width: 100%;
   }
 }
 

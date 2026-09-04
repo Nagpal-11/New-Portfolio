@@ -21,8 +21,8 @@ export default function Navigation({ onOpenContact, onOpenResume }: NavigationPr
 
   const navItems = [
     { label: 'ABOUT', href: '#about' },
-    { label: 'WORK', href: '#work' },
     { label: 'PILLARS', href: '#pillars' },
+    { label: 'WORK', href: '#work' },
     { label: 'SKILLS', href: '#skills' },
     { label: 'ACTIVITY', href: '#activity' },
     { label: 'FAQ', href: '#faq' },
@@ -43,7 +43,7 @@ export default function Navigation({ onOpenContact, onOpenResume }: NavigationPr
 
   return (
     <>
-      <header className="fixed top-0 left-0 right-0 z-50 flex justify-center px-4 pt-5 pb-3 pointer-events-none transition-all duration-300">
+      <header className="fixed top-0 left-0 right-0 z-50 flex justify-center px-4 pt-3.5 sm:pt-4 pb-2.5 sm:pb-3 pointer-events-none transition-all duration-300">
         <nav
           className={`pointer-events-auto flex items-center justify-between gap-6 sm:gap-8 px-5 sm:px-7 py-2.5 rounded-full border transition-all duration-300 ${
             isScrolled
@@ -59,6 +59,13 @@ export default function Navigation({ onOpenContact, onOpenResume }: NavigationPr
               className="hover:text-black transition-colors"
             >
               ABOUT
+            </a>
+            <a
+              href="#pillars"
+              onClick={(e) => handleNavClick(e, '#pillars')}
+              className="hover:text-black transition-colors"
+            >
+              PILLARS
             </a>
             <a
               href="#work"
@@ -88,13 +95,6 @@ export default function Navigation({ onOpenContact, onOpenResume }: NavigationPr
 
           {/* Right Links - Desktop */}
           <div className="hidden md:flex items-center gap-6 text-[11px] font-semibold tracking-[0.16em] text-neutral-600">
-            <a
-              href="#pillars"
-              onClick={(e) => handleNavClick(e, '#pillars')}
-              className="hover:text-black transition-colors"
-            >
-              PILLARS
-            </a>
             <a
               href="#skills"
               onClick={(e) => handleNavClick(e, '#skills')}

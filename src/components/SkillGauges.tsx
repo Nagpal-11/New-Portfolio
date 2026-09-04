@@ -240,11 +240,11 @@ const RadarCanvas = memo(function RadarCanvas({
   );
 
   return (
-    <div className="relative w-[280px] h-[280px] sm:w-[420px] sm:h-[420px] aspect-square flex-shrink-0 flex items-center justify-center radar-container">
+    <div className="relative w-full max-w-[340px] sm:max-w-[420px] lg:max-w-[460px] aspect-square flex-shrink-0 flex items-center justify-center radar-container mx-auto">
       {/* SVG Radar Visualization */}
       <svg
         viewBox={`0 0 ${SIZE} ${SIZE}`}
-        className="w-full h-full overflow-visible select-none radar-svg pointer-events-none"
+        className="w-full h-full aspect-square overflow-visible select-none radar-svg pointer-events-none"
       >
         <defs>
           <radialGradient id="radarFillGradient" cx="50%" cy="50%" r="50%">
@@ -520,7 +520,7 @@ export default function SkillGauges() {
         </div>
 
         {/* Visualizer Grid: Left Radar Canvas + Right Telemetry Inspector */}
-        <div className="grid grid-cols-1 lg:grid-cols-12 gap-0 lg:h-[650px] items-stretch">
+        <div className="grid grid-cols-1 lg:grid-cols-12 gap-0 min-h-[540px] sm:min-h-[580px] lg:min-h-[640px] lg:h-[650px] items-stretch">
           {/* ================= LEFT: INTERACTIVE RADAR & TOPOLOGY CANVAS ================= */}
           <div className="lg:col-span-7 p-6 sm:p-8 flex flex-col items-center justify-between relative border-b lg:border-b-0 lg:border-r border-neutral-200/80 bg-[#f9f9f8] radar-container lg:h-full flex-shrink-0">
             {/* Subtle Coordinate Watermarks */}
@@ -538,7 +538,7 @@ export default function SkillGauges() {
             </div>
 
             {/* Isolated Memoized Radar Canvas Centered Vertically */}
-            <div className="flex-1 w-full flex items-center justify-center">
+            <div className="flex-1 w-full flex items-center justify-center min-h-0 py-2 sm:py-4">
               <RadarCanvas
                 activeNodeId={activeNodeId}
                 onSelectNode={handleSelectNode}
@@ -553,8 +553,8 @@ export default function SkillGauges() {
           </div>
 
           {/* ================= RIGHT: ACTIVE TELEMETRY INSPECTOR ================= */}
-          <div className="lg:col-span-5 p-6 sm:p-8 bg-white flex flex-col justify-between inspector-panel lg:h-full relative overflow-hidden">
-            <div className="relative flex-1 flex flex-col justify-between overflow-hidden">
+          <div className="lg:col-span-5 p-6 sm:p-8 bg-white flex flex-col justify-between inspector-panel min-h-[540px] sm:min-h-[580px] lg:min-h-[640px] lg:h-full relative overflow-hidden">
+            <div className="relative flex-1 flex flex-col justify-between overflow-hidden min-h-[440px]">
               <AnimatePresence mode="wait">
                 <motion.div
                   key={activeNode.id}
@@ -562,7 +562,7 @@ export default function SkillGauges() {
                   animate={{ opacity: 1 }}
                   exit={{ opacity: 0 }}
                   transition={{ duration: 0.15, ease: 'linear' }}
-                  className="w-full flex flex-col justify-between h-full space-y-2"
+                  className="w-full flex flex-col justify-between h-full space-y-2 min-h-[440px]"
                 >
                   {/* Top Telemetry Header & Title Slot with Fixed Height */}
                   <div className="space-y-1 border-b border-neutral-100 pb-3">
