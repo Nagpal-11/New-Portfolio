@@ -1,0 +1,15 @@
+# Robots.txt for Ekjot Nagpal Portfolio & Lab
+# Website: https://ekjotnagpal.in
+
+User-agent: *
+Allow: /
+
+# High priority indexing for search engines
+User-agent: Googlebot
+Allow: /
+
+User-agent: Bingbot
+Allow: /
+
+# XML Sitemap
+Sitemap: https://ekjotnagpal.in/sitemap.xml
