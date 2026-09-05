@@ -1,6 +1,26 @@
-import React, { useState } from 'react';
-import { X, Mail, Github, Copy, Check, Send, Sparkles, MapPin } from 'lucide-react';
+import React, { useState, useEffect } from 'react';
+import {
+  X,
+  Mail,
+  Github,
+  Copy,
+  Check,
+  Send,
+  Sparkles,
+  MapPin,
+  Loader2,
+  AlertCircle,
+  ExternalLink,
+} from 'lucide-react';
 import { PERSONAL_INFO } from '../data/portfolioData';
+import {
+  sendDirectEmail,
+  TARGET_EMAIL,
+  getMailtoFallbackUrl,
+  getGmailWebComposeUrl,
+  getGasWebhookUrl,
+} from '../lib/sendContactEmail';
+import GoogleScriptGuideModal from './GoogleScriptGuideModal';
 
 interface ContactModalProps {
   isOpen: boolean;
@@ -11,9 +31,20 @@ interface ContactModalProps {
 export default function ContactModal({ isOpen, onClose, onOpenResume }: ContactModalProps) {
   const [copied, setCopied] = useState(false);
   const [submitted, setSubmitted] = useState(false);
+  const [submitting, setSubmitting] = useState(false);
+  const [statusMessage, setStatusMessage] = useState('');
+  const [errorMessage, setErrorMessage] = useState<string | null>(null);
   const [senderName, setSenderName] = useState('');
   const [senderEmail, setSenderEmail] = useState('');
   const [senderMessage, setSenderMessage] = useState('');
+  const [isGuideOpen, setIsGuideOpen] = useState(false);
+  const [hasWebhook, setHasWebhook] = useState(false);
+
+  useEffect(() => {
+    if (isOpen) {
+      setHasWebhook(Boolean(getGasWebhookUrl()));
+    }
+  }, [isOpen]);
 
   if (!isOpen) return null;
 
@@ -23,13 +54,41 @@ export default function ContactModal({ isOpen, onClose, onOpenResume }: ContactM
     setTimeout(() => setCopied(false), 2500);
   };
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    setSubmitted(true);
-    setTimeout(() => {
-      setSubmitted(false);
-      onClose();
-    }, 3000);
+    if (submitting) return;
+
+    setSubmitting(true);
+    setErrorMessage(null);
+
+    const payload = {
+      name: senderName.trim(),
+      email: senderEmail.trim(),
+      message: senderMessage.trim(),
+    };
+
+    const webhookUrl = getGasWebhookUrl();
+
+    if (!webhookUrl) {
+      setSubmitting(false);
+      window.open(getGmailWebComposeUrl(payload), '_blank', 'noopener,noreferrer');
+      setSubmitted(true);
+      setStatusMessage('Your message draft has been opened in your email client. Please review and send.');
+      return;
+    }
+
+    const result = await sendDirectEmail(payload);
+    setSubmitting(false);
+
+    if (result.success) {
+      setSubmitted(true);
+      setStatusMessage(result.message);
+      setSenderName('');
+      setSenderEmail('');
+      setSenderMessage('');
+    } else {
+      setErrorMessage(result.message);
+    }
   };
 
   return (
@@ -98,17 +157,51 @@ export default function ContactModal({ isOpen, onClose, onOpenResume }: ContactM
 
           {/* Direct Note Form */}
           {submitted ? (
-            <div className="p-6 rounded-2xl bg-emerald-950/40 border border-emerald-500/30 text-center space-y-2 animate-in fade-in">
-              <div className="w-10 h-10 rounded-full bg-emerald-500/20 text-emerald-400 flex items-center justify-center mx-auto">
-                <Check size={20} />
+            <div className="p-6 rounded-2xl bg-emerald-950/40 border border-emerald-500/40 text-center space-y-3 animate-in fade-in">
+              <div className="w-12 h-12 rounded-full bg-emerald-500/20 text-emerald-400 flex items-center justify-center mx-auto">
+                <Check size={24} />
               </div>
-              <div className="font-bold text-white text-sm">Message Transmitted!</div>
-              <p className="text-xs text-neutral-300">
-                I will respond to your inquiry within 24 hours.
+              <div className="font-bold text-white text-base">Message Sent Successfully</div>
+              <p className="text-xs text-neutral-300 leading-relaxed max-w-sm mx-auto">
+                {statusMessage || 'Thank you for reaching out. Ekjot will review your inquiry and respond within 24 hours.'}
               </p>
+              <div className="pt-2 flex items-center justify-center gap-3">
+                <button
+                  type="button"
+                  onClick={() => setSubmitted(false)}
+                  className="px-4 py-2 rounded-lg bg-neutral-800 hover:bg-neutral-700 text-xs font-semibold text-white transition-colors"
+                >
+                  Write Another
+                </button>
+                <button
+                  type="button"
+                  onClick={onClose}
+                  className="px-4 py-2 rounded-lg bg-neutral-700 hover:bg-neutral-600 text-xs font-semibold text-white transition-colors"
+                >
+                  Close
+                </button>
+              </div>
             </div>
           ) : (
             <form onSubmit={handleSubmit} className="space-y-3.5">
+              {errorMessage && (
+                <div className="p-3 rounded-xl bg-rose-950/60 border border-rose-500/40 text-xs text-rose-200 flex items-start justify-between gap-2">
+                  <div className="flex items-start gap-1.5">
+                    <AlertCircle size={14} className="text-rose-400 shrink-0 mt-0.5" />
+                    <span className="text-[11px]">{errorMessage}</span>
+                  </div>
+                  <a
+                    href={getGmailWebComposeUrl({ name: senderName, email: senderEmail, message: senderMessage })}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="px-2 py-0.5 rounded bg-rose-900/80 hover:bg-rose-800 text-[10px] font-bold text-white shrink-0 inline-flex items-center gap-1"
+                  >
+                    <span>Gmail Web</span>
+                    <ExternalLink size={9} />
+                  </a>
+                </div>
+              )}
+
               <div>
                 <label className="text-[10px] font-mono uppercase text-neutral-400 block mb-1">
                   Name / Organization
@@ -116,10 +209,11 @@ export default function ContactModal({ isOpen, onClose, onOpenResume }: ContactM
                 <input
                   type="text"
                   required
+                  disabled={submitting}
                   value={senderName}
                   onChange={(e) => setSenderName(e.target.value)}
                   placeholder="e.g. Maya Lin · Hiring Manager"
-                  className="w-full rounded-xl bg-neutral-950 border border-neutral-800 px-3.5 py-2.5 text-xs text-white placeholder:text-neutral-600 focus:outline-none focus:border-blue-500"
+                  className="w-full rounded-xl bg-neutral-950 border border-neutral-800 px-3.5 py-2.5 text-xs text-white placeholder:text-neutral-600 focus:outline-none focus:border-blue-500 disabled:opacity-50"
                 />
               </div>
 
@@ -130,10 +224,11 @@ export default function ContactModal({ isOpen, onClose, onOpenResume }: ContactM
                 <input
                   type="email"
                   required
+                  disabled={submitting}
                   value={senderEmail}
                   onChange={(e) => setSenderEmail(e.target.value)}
                   placeholder="name@company.com"
-                  className="w-full rounded-xl bg-neutral-950 border border-neutral-800 px-3.5 py-2.5 text-xs text-white placeholder:text-neutral-600 focus:outline-none focus:border-blue-500"
+                  className="w-full rounded-xl bg-neutral-950 border border-neutral-800 px-3.5 py-2.5 text-xs text-white placeholder:text-neutral-600 focus:outline-none focus:border-blue-500 disabled:opacity-50"
                 />
               </div>
 
@@ -144,20 +239,33 @@ export default function ContactModal({ isOpen, onClose, onOpenResume }: ContactM
                 <textarea
                   rows={3}
                   required
+                  disabled={submitting}
                   value={senderMessage}
                   onChange={(e) => setSenderMessage(e.target.value)}
                   placeholder="Details regarding your role or project..."
-                  className="w-full rounded-xl bg-neutral-950 border border-neutral-800 px-3.5 py-2.5 text-xs text-white placeholder:text-neutral-600 focus:outline-none focus:border-blue-500 resize-none"
+                  className="w-full rounded-xl bg-neutral-950 border border-neutral-800 px-3.5 py-2.5 text-xs text-white placeholder:text-neutral-600 focus:outline-none focus:border-blue-500 resize-none disabled:opacity-50"
                 />
               </div>
 
-              <button
-                type="submit"
-                className="w-full flex items-center justify-center gap-2 py-3 rounded-xl bg-blue-600 hover:bg-blue-500 text-white text-xs font-bold uppercase tracking-wider transition-all shadow-md active:scale-[0.98]"
-              >
-                <span>Send Note</span>
-                <Send size={13} />
-              </button>
+              <div className="pt-2">
+                <button
+                  type="submit"
+                  disabled={submitting}
+                  className="w-full flex items-center justify-center gap-2 py-3.5 rounded-xl bg-blue-600 hover:bg-blue-500 disabled:bg-blue-800 text-white text-xs font-bold uppercase tracking-wider transition-all shadow-md active:scale-[0.98] disabled:cursor-not-allowed"
+                >
+                  {submitting ? (
+                    <>
+                      <Loader2 size={13} className="animate-spin" />
+                      <span>Dispatching Message...</span>
+                    </>
+                  ) : (
+                    <>
+                      <span>Transmit Message</span>
+                      <Send size={13} />
+                    </>
+                  )}
+                </button>
+              </div>
             </form>
           )}
 
@@ -185,6 +293,12 @@ export default function ContactModal({ isOpen, onClose, onOpenResume }: ContactM
           </div>
         </div>
       </div>
+
+      <GoogleScriptGuideModal
+        isOpen={isGuideOpen}
+        onClose={() => setIsGuideOpen(false)}
+        onSavedWebhook={() => setHasWebhook(true)}
+      />
     </div>
   );
 }

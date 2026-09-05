@@ -666,7 +666,7 @@ export default function FeaturedWork({ onOpenProjectModal }: FeaturedWorkProps) 
                       {project.id === 'sentiment-rnn' && (
                         <div className="space-y-3">
                           <div className="flex items-center justify-between text-xs text-neutral-400 font-mono">
-                            <span>Simple RNN Inference (1.31M params)</span>
+                            <span>IMDB Simple RNN (1.31M params)</span>
                             <span className="text-blue-400">
                               94.23% Test Acc
                             </span>
@@ -674,7 +674,7 @@ export default function FeaturedWork({ onOpenProjectModal }: FeaturedWorkProps) 
 
                           <div className="space-y-1.5">
                             <label className="text-[10px] text-neutral-400 font-mono uppercase">
-                              Test Sentence Input:
+                              Movie Review Input:
                             </label>
                             <div className="flex gap-2">
                               <input
@@ -684,7 +684,7 @@ export default function FeaturedWork({ onOpenProjectModal }: FeaturedWorkProps) 
                                   setSentimentInput(e.target.value)
                                 }
                                 className="flex-1 bg-neutral-900 border border-neutral-700 rounded-xl px-3 py-1.5 text-xs text-white focus:outline-none focus:border-blue-500 font-sans"
-                                placeholder="Enter text to analyze sentiment..."
+                                placeholder="Enter movie review to classify sentiment..."
                               />
                               <button
                                 onClick={handleAnalyzeSentiment}

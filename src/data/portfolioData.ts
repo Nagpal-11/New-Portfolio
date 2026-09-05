@@ -95,22 +95,22 @@ export const PROJECTS: Project[] = [
     id: 'sentiment-rnn',
     title: 'Interactive Sentiment Analysis Engine',
     category: 'Deep Learning / Neural Networks',
-    subtitle: 'Custom Simple RNN architecture achieving 94.23% accuracy on real-time text.',
+    subtitle: 'IMDB Movie Review Sentiment Analysis using Simple RNN (94.23% Accuracy).',
     summary:
-      'Engineered an end-to-end deep learning web application from scratch to classify sentence sentiment with microsecond inference times, balancing network depth with minimal memory footprint.',
+      'Engineered an end-to-end deep learning web application to classify IMDB movie review sentiment with microsecond inference times, tokenizing text sequences, embedding vocabulary, and outputting real-time polarity confidence.',
     highlights: [
-      'Architected and trained a custom Simple RNN with 1,313,025 trainable parameters (~5.01 MB footprint).',
-      'Attained an outstanding test accuracy of 94.23% through rigorous hyperparameter tuning and regularization.',
-      'Implemented custom text pre-processing, vocabulary tokenization, and vector embeddings.',
+      'Architected and trained a custom Simple RNN on 50,000+ IMDB movie reviews with 1,313,025 trainable parameters (~5.01 MB footprint).',
+      'Attained an outstanding test accuracy of 94.23% through rigorous hyperparameter tuning, sequence padding, and regularization.',
+      'Implemented custom text pre-processing, vocabulary tokenization, and word embeddings.',
       'Packaged the neural model into an interactive web interface offering real-time confidence scores and sentiment breakdown.',
     ],
     metrics: [
       { label: 'Trainable Params', value: '1,313,025' },
       { label: 'Test Accuracy', value: '94.23%' },
-      { label: 'Model Size', value: '~5.01 MB' },
+      { label: 'Dataset', value: 'IMDB Movie Reviews' },
     ],
-    tags: ['Python', 'TensorFlow', 'Keras', 'RNN', 'Deep Learning', 'NLP'],
-    githubUrl: 'https://github.com/Nagpal-11',
+    tags: ['Python', 'TensorFlow', 'Keras', 'Simple RNN', 'IMDB Dataset', 'Deep Learning', 'NLP'],
+    githubUrl: 'https://github.com/Nagpal-11/SimpleRNN-IMDB-Movie-Review-Sentiment-Analysis',
     accentColor: '#0ea5e9',
     videoPlaceholder: {
       badgeText: 'NEURAL INFERENCE DEMO',
@@ -119,7 +119,7 @@ export const PROJECTS: Project[] = [
   },
   {
     id: 'churn-ann',
-    title: 'End-to-End Customer Churn Intelligence',
+    title: 'End-to-End Customer Churn Prediction',
     category: 'Predictive Analytics / ANN',
     subtitle: 'Artificial Neural Network predicting customer churn probability from behavioral data.',
     summary:
@@ -136,7 +136,7 @@ export const PROJECTS: Project[] = [
       { label: 'Pipeline', value: 'Scikit-Learn + Keras' },
     ],
     tags: ['TensorFlow', 'Keras', 'ANN', 'Streamlit', 'Python', 'Feature Engineering'],
-    githubUrl: 'https://github.com/Nagpal-11',
+    githubUrl: 'https://github.com/Nagpal-11/ANN-Classification-Churn',
     accentColor: '#10b981',
     videoPlaceholder: {
       badgeText: 'CHURN PROJECTION ENGINE',

@@ -1,6 +1,28 @@
 import React, { useState, useEffect } from 'react';
-import { ArrowUpRight, Mail, Github, Globe, Check, Copy, FileText, Send, Clock, Sparkles } from 'lucide-react';
+import {
+  ArrowUpRight,
+  Mail,
+  Github,
+  Globe,
+  Check,
+  Copy,
+  FileText,
+  Send,
+  Clock,
+  Sparkles,
+  AlertCircle,
+  Loader2,
+  ExternalLink,
+} from 'lucide-react';
 import { PERSONAL_INFO } from '../data/portfolioData';
+import {
+  sendDirectEmail,
+  TARGET_EMAIL,
+  getMailtoFallbackUrl,
+  getGmailWebComposeUrl,
+  getGasWebhookUrl,
+} from '../lib/sendContactEmail';
+import GoogleScriptGuideModal from './GoogleScriptGuideModal';
 
 interface ContactFooterProps {
   onOpenResume: () => void;
@@ -9,10 +31,21 @@ interface ContactFooterProps {
 export default function ContactFooter({ onOpenResume }: ContactFooterProps) {
   const [copied, setCopied] = useState(false);
   const [formSent, setFormSent] = useState(false);
+  const [submitting, setSubmitting] = useState(false);
+  const [statusMessage, setStatusMessage] = useState('');
+  const [errorMessage, setErrorMessage] = useState<string | null>(null);
   const [currentTime, setCurrentTime] = useState('');
+  const [isGuideOpen, setIsGuideOpen] = useState(false);
+  const [hasWebhook, setHasWebhook] = useState(false);
+  const [copiedDraft, setCopiedDraft] = useState(false);
+
   const [contactName, setContactName] = useState('');
   const [contactEmail, setContactEmail] = useState('');
   const [contactMessage, setContactMessage] = useState('');
+
+  useEffect(() => {
+    setHasWebhook(Boolean(getGasWebhookUrl()));
+  }, []);
 
   useEffect(() => {
     const updateTime = () => {
@@ -39,15 +72,51 @@ export default function ContactFooter({ onOpenResume }: ContactFooterProps) {
     setTimeout(() => setCopied(false), 2500);
   };
 
-  const handleFormSubmit = (e: React.FormEvent) => {
+  const handleCopyDraft = () => {
+    const draft = `From: ${contactName || 'Visitor'} <${contactEmail || 'No email'}>
+Message:
+${contactMessage || ''}`;
+    navigator.clipboard.writeText(draft);
+    setCopiedDraft(true);
+    setTimeout(() => setCopiedDraft(false), 2500);
+  };
+
+  const handleFormSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    setFormSent(true);
-    setTimeout(() => {
-      setFormSent(false);
+    if (submitting) return;
+
+    setSubmitting(true);
+    setErrorMessage(null);
+
+    const payload = {
+      name: contactName.trim(),
+      email: contactEmail.trim(),
+      message: contactMessage.trim(),
+    };
+
+    const webhookUrl = getGasWebhookUrl();
+
+    if (!webhookUrl) {
+      // If webhook isn't configured yet, launch Gmail Web directly with drafted message
+      setSubmitting(false);
+      window.open(getGmailWebComposeUrl(payload), '_blank', 'noopener,noreferrer');
+      setFormSent(true);
+      setStatusMessage('Your message draft has been opened in your email client. Please review and send.');
+      return;
+    }
+
+    const result = await sendDirectEmail(payload);
+    setSubmitting(false);
+
+    if (result.success) {
+      setFormSent(true);
+      setStatusMessage(result.message);
       setContactName('');
       setContactEmail('');
       setContactMessage('');
-    }, 4000);
+    } else {
+      setErrorMessage(result.message);
+    }
   };
 
   return (
@@ -170,25 +239,58 @@ export default function ContactFooter({ onOpenResume }: ContactFooterProps) {
           {/* Right Column: Interactive Quick Dispatch Form (6 cols) */}
           <div className="lg:col-span-6">
             <div className="rounded-3xl bg-neutral-900/90 border border-neutral-800 p-6 sm:p-8 space-y-6">
-              <div className="space-y-1">
+              <div className="space-y-1.5">
                 <h4 className="text-lg font-bold text-white">Send Direct Message</h4>
-                <p className="text-xs text-neutral-400">
-                  Have an open software role or project inquiry? Drop a note below.
+                <p className="text-xs text-neutral-400 leading-relaxed">
+                  Available for software engineering roles, deep learning initiatives, and technical collaborations. Send a message to connect directly.
                 </p>
               </div>
 
               {formSent ? (
-                <div className="p-6 rounded-2xl bg-emerald-950/40 border border-emerald-500/30 text-center space-y-2 animate-in fade-in">
-                  <div className="w-10 h-10 rounded-full bg-emerald-500/20 text-emerald-400 flex items-center justify-center mx-auto">
-                    <Check size={20} />
+                <div className="p-6 rounded-2xl bg-emerald-950/40 border border-emerald-500/40 text-center space-y-4 animate-in fade-in">
+                  <div className="w-12 h-12 rounded-full bg-emerald-500/20 text-emerald-400 flex items-center justify-center mx-auto">
+                    <Check size={24} />
                   </div>
-                  <div className="font-bold text-white text-sm">Message Sent Successfully!</div>
-                  <p className="text-xs text-neutral-300">
-                    Thank you for reaching out. I typically reply within 24 hours.
-                  </p>
+                  <div className="space-y-1">
+                    <div className="font-bold text-white text-base">Message Sent Successfully</div>
+                    <p className="text-xs text-neutral-300 leading-relaxed max-w-md mx-auto">
+                      {statusMessage || 'Thank you for reaching out. Ekjot has received your note and typically responds within 24 hours.'}
+                    </p>
+                  </div>
+
+                  <div className="pt-2 flex items-center justify-center">
+                    <button
+                      type="button"
+                      onClick={() => setFormSent(false)}
+                      className="px-5 py-2.5 rounded-xl bg-neutral-800 hover:bg-neutral-700 text-xs font-semibold text-white transition-colors"
+                    >
+                      Send Another Message
+                    </button>
+                  </div>
                 </div>
               ) : (
                 <form onSubmit={handleFormSubmit} className="space-y-4">
+                  {errorMessage && (
+                    <div className="p-3.5 rounded-xl bg-rose-950/60 border border-rose-500/40 text-xs text-rose-200 flex items-start justify-between gap-3">
+                      <div className="flex items-start gap-2">
+                        <AlertCircle size={16} className="text-rose-400 shrink-0 mt-0.5" />
+                        <div>
+                          <div className="font-semibold text-rose-300">Transmission Alert</div>
+                          <div>{errorMessage}</div>
+                        </div>
+                      </div>
+                      <a
+                        href={getGmailWebComposeUrl({ name: contactName, email: contactEmail, message: contactMessage })}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="px-2.5 py-1 rounded-lg bg-rose-900/80 hover:bg-rose-800 text-[11px] font-bold text-white shrink-0 inline-flex items-center gap-1"
+                      >
+                        <span>Gmail Web</span>
+                        <ExternalLink size={10} />
+                      </a>
+                    </div>
+                  )}
+
                   <div className="space-y-1.5">
                     <label className="text-[11px] font-mono uppercase text-neutral-400">
                       Your Name / Company
@@ -196,10 +298,11 @@ export default function ContactFooter({ onOpenResume }: ContactFooterProps) {
                     <input
                       type="text"
                       required
+                      disabled={submitting}
                       value={contactName}
                       onChange={(e) => setContactName(e.target.value)}
                       placeholder="e.g. Alex Vance · DeepMind or Tech Corp"
-                      className="w-full rounded-xl bg-neutral-950 border border-neutral-800 px-4 py-3 text-sm text-white placeholder:text-neutral-600 focus:outline-none focus:border-blue-500"
+                      className="w-full rounded-xl bg-neutral-950 border border-neutral-800 px-4 py-3 text-sm text-white placeholder:text-neutral-600 focus:outline-none focus:border-blue-500 disabled:opacity-50"
                     />
                   </div>
 
@@ -210,34 +313,67 @@ export default function ContactFooter({ onOpenResume }: ContactFooterProps) {
                     <input
                       type="email"
                       required
+                      disabled={submitting}
                       value={contactEmail}
                       onChange={(e) => setContactEmail(e.target.value)}
                       placeholder="alex@company.com"
-                      className="w-full rounded-xl bg-neutral-950 border border-neutral-800 px-4 py-3 text-sm text-white placeholder:text-neutral-600 focus:outline-none focus:border-blue-500"
+                      className="w-full rounded-xl bg-neutral-950 border border-neutral-800 px-4 py-3 text-sm text-white placeholder:text-neutral-600 focus:outline-none focus:border-blue-500 disabled:opacity-50"
                     />
                   </div>
 
                   <div className="space-y-1.5">
-                    <label className="text-[11px] font-mono uppercase text-neutral-400">
-                      Project Scope or Role Details
-                    </label>
+                    <div className="flex items-center justify-between">
+                      <label className="text-[11px] font-mono uppercase text-neutral-400">
+                        Project Scope or Role Details
+                      </label>
+                      <button
+                        type="button"
+                        onClick={handleCopyDraft}
+                        className="text-[10px] text-neutral-500 hover:text-neutral-300 font-mono flex items-center gap-1 transition-colors"
+                      >
+                        {copiedDraft ? (
+                          <>
+                            <Check size={10} className="text-emerald-400" />
+                            <span className="text-emerald-400">Copied note</span>
+                          </>
+                        ) : (
+                          <>
+                            <Copy size={10} />
+                            <span>Copy note</span>
+                          </>
+                        )}
+                      </button>
+                    </div>
                     <textarea
                       rows={3}
                       required
+                      disabled={submitting}
                       value={contactMessage}
                       onChange={(e) => setContactMessage(e.target.value)}
                       placeholder="Tell me about the engineering challenge, team, or opportunity..."
-                      className="w-full rounded-xl bg-neutral-950 border border-neutral-800 px-4 py-3 text-sm text-white placeholder:text-neutral-600 focus:outline-none focus:border-blue-500 resize-none"
+                      className="w-full rounded-xl bg-neutral-950 border border-neutral-800 px-4 py-3 text-sm text-white placeholder:text-neutral-600 focus:outline-none focus:border-blue-500 resize-none disabled:opacity-50"
                     />
                   </div>
 
-                  <button
-                    type="submit"
-                    className="w-full flex items-center justify-center gap-2 py-3.5 px-6 rounded-xl bg-blue-600 hover:bg-blue-500 text-white text-xs font-bold tracking-wider uppercase transition-all shadow-md active:scale-[0.99]"
-                  >
-                    <span>Transmit Message</span>
-                    <Send size={14} />
-                  </button>
+                  <div className="pt-2">
+                    <button
+                      type="submit"
+                      disabled={submitting}
+                      className="w-full flex items-center justify-center gap-2 py-3.5 px-6 rounded-xl bg-blue-600 hover:bg-blue-500 disabled:bg-blue-800 disabled:cursor-not-allowed text-white text-xs font-bold tracking-wider uppercase transition-all shadow-md active:scale-[0.99]"
+                    >
+                      {submitting ? (
+                        <>
+                          <Loader2 size={14} className="animate-spin" />
+                          <span>Dispatching Message...</span>
+                        </>
+                      ) : (
+                        <>
+                          <span>Transmit Message</span>
+                          <Send size={14} />
+                        </>
+                      )}
+                    </button>
+                  </div>
                 </form>
               )}
             </div>
@@ -257,6 +393,13 @@ export default function ContactFooter({ onOpenResume }: ContactFooterProps) {
           </div>
         </div>
       </div>
+
+      {/* Google Apps Script Option 3 Setup Guide Modal */}
+      <GoogleScriptGuideModal
+        isOpen={isGuideOpen}
+        onClose={() => setIsGuideOpen(false)}
+        onSavedWebhook={() => setHasWebhook(true)}
+      />
     </footer>
   );
 }
